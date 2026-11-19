@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Метод Крамера</title>
+  <style>
+:root {
+  --ink: #183142;
+  --accent: #164e63;
+  --paper: #ffffff;
+  --surface: #edf4f7;
+  --line: #738692;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: Arial, sans-serif;
+  scrollbar-color: var(--line) var(--surface);
+}
+* { box-sizing: border-box; }
+body { margin: 0; padding: 28px 16px; }
+main { max-width: 650px; margin: auto; }
+h4 { margin: 0 0 28px; font: 14px Consolas, monospace; }
+h1 { font: 36px Georgia, serif; line-height: 1.15; }
+fieldset { border: 0; padding: 12px 0; margin: 0; min-width: 0; }
+legend { font-size: 14px; }
+.equation { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 10px; align-items: center; }
+input { min-width: 0; width: 100%; border: 1px solid var(--line); border-radius: 4px; padding: 12px 8px; font: 20px Consolas, monospace; color: var(--ink); background: var(--paper); }
+input[aria-invalid="true"] { outline: 2px solid var(--ink); }
+button { margin-top: 16px; min-height: 44px; padding: 12px 24px; border: 2px solid var(--accent); border-radius: 4px; background: var(--accent); color: var(--paper); font: inherit; cursor: pointer; }
+button:hover { background: var(--ink); }
+button:active { transform: translateY(1px); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+#status { min-height: 3em; margin: 16px 0; }
+.results { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.results input { background: var(--surface); margin-top: 8px; }
+@media (max-width: 400px) {
+  h1 { font-size: 30px; }
+  .equation { gap: 5px; }
+  input { font-size: 16px; padding: 10px 4px; }
+}
+
+</style>
+</head>
+<body>
+  <main>
+    <h4>kiroo_rezkallah</h4>
+    <h1>Два уравнения.<br>Две неизвестные.</h1>
+    <p>Введите шесть коэффициентов системы.</p>
+    <form novalidate>
+      <fieldset>
+        <legend>Первое уравнение</legend>
+        <div class="equation">
+          <input id="n1" type="number" step="any" value="2" aria-label="Коэффициент x первого уравнения" aria-describedby="status"> <span>x +</span>
+          <input id="n2" type="number" step="any" value="3" aria-label="Коэффициент y первого уравнения" aria-describedby="status"> <span>y =</span>
+          <input id="n3" type="number" step="any" value="18" aria-label="Правая часть первого уравнения" aria-describedby="status">
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Второе уравнение</legend>
+        <div class="equation">
+          <input id="n4" type="number" step="any" value="4" aria-label="Коэффициент x второго уравнения" aria-describedby="status"> <span>x +</span>
+          <input id="n5" type="number" step="any" value="-5" aria-label="Коэффициент y второго уравнения" aria-describedby="status"> <span>y =</span>
+          <input id="n6" type="number" step="any" value="-8" aria-label="Правая часть второго уравнения" aria-describedby="status">
+        </div>
+      </fieldset>
+      <button id="bt" type="submit">Вычислить</button>
+      <p id="status" role="status"></p>
+      <div class="results">
+        <label>x <input id="result1" type="text" readonly></label>
+        <label>y <input id="result2" type="text" readonly></label>
+      </div>
+    </form>
+  </main>
+  <script>
+/** Solve ax + by = c and dx + ey = f using Cramer's rule. */
+function solve(a, b, c, d, e, f) {
+  const determinant = a * e - d * b;
+  if (determinant === 0) return null;
+  return { x: (c * e - f * b) / determinant, y: (a * f - d * c) / determinant };
+}
+
+
+
+const coefficients = Array.from({ length: 6 }, (_, i) => document.getElementById('n' + (i + 1)));
+const result1 = document.getElementById('result1');
+const result2 = document.getElementById('result2');
+const status = document.getElementById('status');
+
+document.querySelector('form').addEventListener('submit', event => {
+  event.preventDefault();
+  result1.value = result2.value = '';
+  for (const input of coefficients) input.removeAttribute('aria-invalid');
+  const invalid = coefficients.find(input => input.value === '' || !Number.isFinite(input.valueAsNumber));
+  if (invalid) {
+    invalid.setAttribute('aria-invalid', 'true');
+    status.textContent = 'Введите число в выделенное поле.';
+    invalid.focus();
+    return;
+  }
+  const result = solve(...coefficients.map(input => input.valueAsNumber));
+  if (!result) {
+    status.textContent = 'Определитель равен нулю: единственного решения нет.';
+    return;
+  }
+  result1.value = result.x;
+  result2.value = result.y;
+  status.textContent = 'Решение вычислено.';
+});
+
+</script>
+</body>
+</html>
